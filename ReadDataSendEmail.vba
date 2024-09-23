@@ -1,4 +1,3 @@
-' In a standard module (e.g., Module1)
 Option Explicit
 
 Sub SendEmailForTodayTasks()
@@ -18,18 +17,32 @@ Sub SendEmailForTodayTasks()
     Dim taskDate As Date
     Dim task As String
     Dim sendTo As String
+    Dim emailBody As String
+    Dim accountName As String
     
     For i = 2 To lastRow 'Assumes headers in row 1
         taskDate = ws.Cells(i, 1).Value
         task = ws.Cells(i, 2).Value
         sendTo = ws.Cells(i, 3).Value
+        emailBody = ws.Cells(i, 4).Value
+        accountName = ws.Cells(i, 5).Value  ' Assuming account name is in column E
         
         If DateValue(taskDate) = DateValue(Date) Then
             Set emailItem = outlookApp.CreateItem(0)
             With emailItem
                 .To = sendTo
                 .Subject = "Task for Today: " & task
-                .Body = "This is a reminder for the following task: " & task
+                .Body = emailBody
+                
+                ' Select the appropriate account
+                Dim account As Object
+                For Each account In outlookApp.Session.Accounts
+                    If account.DisplayName = accountName Then
+                        Set .SendUsingAccount = account
+                        Exit For
+                    End If
+                Next account
+                
                 .Send
             End With
         End If
